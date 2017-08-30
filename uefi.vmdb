@@ -25,9 +25,9 @@ steps:
 
   - mkfs: ext4
     partition: root-part
-
-  - mount: root-part
     fs-tag: root-fs
+
+  - mount: root-fs
 
   - unpack-rootfs: root-fs
 
