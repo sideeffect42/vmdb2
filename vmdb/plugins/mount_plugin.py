@@ -34,7 +34,7 @@ class MountPlugin(cliapp.Plugin):
 class MountStepRunner(vmdb.StepRunnerInterface):
 
     def get_required_keys(self):
-        return ['mount', 'fs-tag']
+        return ['mount']
 
     def run(self, step, settings, state):
         self.mount_rootfs(step, settings, state)
@@ -46,13 +46,12 @@ class MountStepRunner(vmdb.StepRunnerInterface):
         if not hasattr(state, 'mounts'):
             state.mounts = {}
 
-        part_tag = step['mount']
-        fs_tag = step['fs-tag']
+        fs_tag = step['mount']
         dirname = step.get('dirname')
         mount_on = step.get('mount-on')
 
         if fs_tag in state.mounts:
-            raise Exception('fs-tag {} already used'.format(fs_tag))
+            raise Exception('fs {} already mounted'.format(fs_tag))
 
         if dirname:
             if not mount_on:
@@ -69,7 +68,7 @@ class MountStepRunner(vmdb.StepRunnerInterface):
         else:
             mount_point = tempfile.mkdtemp()
 
-        device = state.parts[part_tag]
+        device = state.filesystems[fs_tag]
 
         vmdb.runcmd(['mount', device, mount_point])
         state.mounts[fs_tag] = mount_point
@@ -77,7 +76,7 @@ class MountStepRunner(vmdb.StepRunnerInterface):
         return mount_point
 
     def unmount_rootfs(self, step, settings, state):
-        fs_tag = step['fs-tag']
+        fs_tag = step['mount']
         mount_point = state.mounts[fs_tag]
 
         vmdb.runcmd(['umount', mount_point])

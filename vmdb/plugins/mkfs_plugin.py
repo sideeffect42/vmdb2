@@ -35,6 +35,7 @@ class MkfsStepRunner(vmdb.StepRunnerInterface):
 
     def run(self, step, settings, state):
         fstype = step['mkfs']
+        fs_tag = step['fs-tag']
 
         if not (('device' in step) ^ ('partition' in step)):
             raise AttributeError('You must provide device or partition, and only one of them')
@@ -50,3 +51,7 @@ class MkfsStepRunner(vmdb.StepRunnerInterface):
         vmdb.progress(
             'Creating {} filesystem on {}'.format(fstype, device_file))
         vmdb.runcmd(['/sbin/mkfs', '-t', fstype, device_file])
+
+        filesystems = getattr(state, 'filesystems', {})
+        filesystems[fs_tag] = device_file
+        state.filesystems = filesystems
