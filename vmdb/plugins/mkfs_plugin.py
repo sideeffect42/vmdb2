@@ -31,12 +31,22 @@ class MkfsPlugin(cliapp.Plugin):
 class MkfsStepRunner(vmdb.StepRunnerInterface):
 
     def get_required_keys(self):
-        return ['mkfs', 'partition']
+        return ['mkfs']
 
     def run(self, step, settings, state):
         fstype = step['mkfs']
-        part_tag = step['partition']
-        device = state.parts[part_tag]
+
+        if not (('device' in step) ^ ('partition' in step)):
+            raise AttributeError('You must provide device or partition, and only one of them')
+
+        device_file = None
+        if 'device' in step:
+            device_file = step['device']
+        else:
+            part_tag = step['partition']
+            device_file = state.parts[part_tag]
+
+        assert device_file is not None
         vmdb.progress(
-            'Creating {} filesystem on {}'.format(fstype, device))
-        vmdb.runcmd(['/sbin/mkfs', '-t', fstype, device])
+            'Creating {} filesystem on {}'.format(fstype, device_file))
+        vmdb.runcmd(['/sbin/mkfs', '-t', fstype, device_file])
